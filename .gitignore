@@ -1,7 +1,7 @@
-# Compiled class file
+# Compiled class files
 *.class
 
-# Log file
+# Log files
 *.log
 
 # BlueJ files
@@ -10,7 +10,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package files (jar, war, ear, etc.)
 *.jar
 *.war
 *.nar
@@ -19,6 +19,76 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual machine crash logs, see https://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Build files
+target/
+META-INF/
+
+# Local configuration files (sdk path, etc.)
+*.iml
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# NetBeans
+nbproject/
+
+# VSCode
+.vscode/
+
+# Gradle
+.gradle/
+build/
+
+# Maven
+mvnw
+mvnw.cmd
+
+# JavaFX
+*.fxml
+
+# JDeveloper
+.jdev/
+
+# JetBrains Rider
+.idea/
+
+# Android Studio
+/.idea
+/captures/
+/.gradle/
+/local.properties
+/.maven-wrapper/
+/out/
+
+# Mac system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Linux system files
+*~
+
+# Temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
