@@ -1,2 +1,2 @@
 # Entity-Component-System
-A very basic ECS system implemented with JAVAFX for simple game development.
+A very basic 2D-ECS implemented with JAVAFX for simple game development.
