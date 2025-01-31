@@ -1,7 +1,7 @@
 package ecs.engine.base;
 
-import ecs.engine.base.GameComponent.ComponentUpdateOrder;
 import ecs.engine.component.Transform;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,17 +65,22 @@ public abstract class GameObject {
 
       // attach the component to the scene
       if (attachedScene != null) {
-        attachedScene.attachComponent(component);
+        GameComponent.allComponents.get(attachedScene).get(component.COMPONENT_UPDATE_ORDER()).add(component);
       }
 
-      // give the reference of the gameobject to the gamecomponent
-      component.gameObject = this;
+      // give the reference of the gameobject to the gamecomponent using reflection
+      Field gameObjectField = GameComponent.class.getDeclaredField("gameObject");
+      gameObjectField.setAccessible(true);
+      gameObjectField.set(component, this);
 
-      // give the reference of the transform to the gamecomponent
-      if (transform == null) {
-        component.transform = (Transform) component;
+      // give the reference of the transform to the gamecomponent using reflection
+      Field transformField = GameComponent.class.getDeclaredField("transform");
+      transformField.setAccessible(true);
+
+      if (component.getClass() == Transform.class) {
+        transformField.set(component, component);
       } else {
-        component.transform = transform;
+        transformField.set(component, transform);
       }
 
       // called the onAttached
@@ -108,8 +113,21 @@ public abstract class GameObject {
       // remove the component from the list
       attachedComponents.remove(componentClass);
 
-      // reset the reference of the gameobject of the gamecomponent back to null
-      component.gameObject = null;
+      // remove the component from the game
+      if (attachedScene != null) {
+        GameComponent.allComponents.get(attachedScene).get(component.COMPONENT_UPDATE_ORDER()).remove(component);
+      }
+
+      // reset the reference of the gameobject of the gamecomponent back to null using reflection
+      Field gameObjectField = GameComponent.class.getDeclaredField("gameObject");
+      gameObjectField.setAccessible(true);
+      gameObjectField.set(component, null);
+
+      // reset the reference of the transform of the gamecomponent back to null using reflection
+      Field transformField = GameComponent.class.getDeclaredField("transform");
+      transformField.setAccessible(true);
+      transformField.set(component, null);
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

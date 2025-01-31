@@ -5,10 +5,15 @@ import java.util.List;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Rectangle;
 
-public class BoxCollider extends Collider<Rectangle>{
-  public static final double MAX_CORNER_DETECTION_DISTANCE = 6;
+public class BoxCollider extends Collider<Rectangle> {
 
-  // accessible variables
+  ////////////// Component Constants //////////////
+
+  /// The maximum distance between a corner and a collision point to consider the collision as a corner collision
+  public static final double MAX_CORNER_DETECTION_DISTANCE = 6;
+  /////////////////////////////////////////////////
+
+  // readonly variables
   public double width;
   public double height;
   public Point2D topLeft;
@@ -167,4 +172,50 @@ public class BoxCollider extends Collider<Rectangle>{
     Point2D projection = segmentStart.add(segment.multiply(t));
     return point.distance(projection);
   }
+
+  /* API HERE */
+
+  /**
+   * Get the width of the box collider.
+   */
+  public double getWidth() {
+    return width;
+  }
+
+  /**
+   * Get the height of the box collider.
+   */
+  public double getHeight() {
+    return height;
+  }
+
+  /**
+   * Get the top left corner of the box collider.
+   */
+  public Point2D getTopLeft() {
+    return topLeft;
+  }
+
+  /**
+   * Get the top right corner of the box collider.
+   */
+  public Point2D getTopRight() {
+    return topRight;
+  }
+
+  /**
+   * Get the bottom left corner of the box collider.
+   */
+  public Point2D getBottomLeft() {
+    return bottomLeft;
+  }
+
+  /**
+   * Get the bottom right corner of the box collider.
+   */
+  public Point2D getBottomRight() {
+    return bottomRight;
+  }
+
+
 }

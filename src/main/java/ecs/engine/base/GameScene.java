@@ -34,7 +34,6 @@ public abstract class GameScene {
 
   // instance variables
   private final ArrayList<GameObject> allObjects;
-  private final Map<ComponentUpdateOrder, ArrayList<GameComponent>> allComponents;
   
   // Inputs
   private KeyCode keyInput;
@@ -42,17 +41,22 @@ public abstract class GameScene {
   private Point2D mouseCursor;
 
   public GameScene() {
+    // Initialize the scene attributes
     width = FXscene.getWidth();
     height = FXscene.getHeight();
     uW = width / 100;
     uH = height / 100;
 
+    // Initialize the instance variables
     allObjects = new ArrayList<>();
-    allComponents = new HashMap<>();
+
+    // Initialize the component list
+    GameComponent.allComponents.put(this, new HashMap<>());
     for (ComponentUpdateOrder order : ComponentUpdateOrder.values()) {
-      allComponents.put(order, new ArrayList<>());
+      GameComponent.allComponents.get(this).put(order, new ArrayList<>());
     }
 
+    // Initialize the input handler
     keyInput = null;
     mouseCursor = new Point2D(0, 0);
   }
@@ -169,12 +173,7 @@ public abstract class GameScene {
 
     // 3. Update transform
     for (ComponentUpdateOrder order : ComponentUpdateOrder.values()) {
-      // Skip the render handler
-      if (order == ComponentUpdateOrder.RENDER) {
-        continue;
-      }
-
-      for (GameComponent component : currentScene.allComponents.get(order)) {
+      for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.transformUpdate();
       }
     }
@@ -187,7 +186,7 @@ public abstract class GameScene {
       }
 
       // Update the components
-      for (GameComponent component : currentScene.allComponents.get(order)) {
+      for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.update();
       }
     }
@@ -210,17 +209,12 @@ public abstract class GameScene {
       throw new RuntimeException("No scene is currently active.");
     }
 
-    // update transform
-    for (GameComponent component : currentScene.allComponents.get(ComponentUpdateOrder.RENDER)) {
-      component.transformUpdate();
-    }
-
     // Clear the canvas
     GraphicsContext gc = ((Canvas)((StackPane) FXscene.getRoot()).getChildren().get(1)).getGraphicsContext2D();
     gc.clearRect(0, 0, FXscene.getWidth(), FXscene.getHeight());
 
     // Render the gameComponents
-    for (GameComponent component : currentScene.allComponents.get(ComponentUpdateOrder.RENDER)) {
+    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(ComponentUpdateOrder.RENDER)) {
       component.update();
     }
   }
@@ -238,31 +232,15 @@ public abstract class GameScene {
   }
 
   /**
-   * Attach the component to the scene for synchronous frame updates.
-   */
-  public void attachComponent(GameComponent component) {
-    ComponentUpdateOrder order = component.COMPONENT_UPDATE_ORDER();
-    allComponents.get(order).add(component);
-  }
-
-  /**
-   * Detach the component from the scene.
-   */
-  public void detachComponent(GameComponent component) {
-    ComponentUpdateOrder order = component.COMPONENT_UPDATE_ORDER();
-    allComponents.get(order).remove(component);
-  }
-
-  /**
    * Register the object onto this scene for synchronous frame updates.
    */
   protected void registerObject(GameObject object) {
     // Add object to the list
     allObjects.add(object);
 
-    // Attach all the components associated with the object
+    // register all the components associated with the object
     for (GameComponent component : object.getAllComponents().values()) {
-      attachComponent(component);
+      GameComponent.allComponents.get(this).get(component.COMPONENT_UPDATE_ORDER()).add(component);
     }
 
     // give the gamescene reference to the object
@@ -287,9 +265,9 @@ public abstract class GameScene {
     // called the onDestroy() method
     object.onDestroy();
 
-    // detach all the components associated with the object
+    // unregister all the components associated with the object
     for (GameComponent component : object.getAllComponents().values()) {
-      detachComponent(component);
+      GameComponent.allComponents.get(this).get(component.COMPONENT_UPDATE_ORDER()).remove(component);
     }
     object.detachAllComponents();
 

@@ -3,8 +3,8 @@ package ecs.engine.component;
 import ecs.engine.base.GameComponent;
 import ecs.engine.base.GameScene;
 import java.util.ArrayList;
+import java.util.Comparator;
 import javafx.geometry.Bounds;
-import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.GraphicsContext;
@@ -16,18 +16,23 @@ import javafx.scene.transform.Translate;
 
 public class RenderHandler extends GameComponent {
 
-  // Settings
+  ////////////// Component Settings //////////////
+
+  /// The render order of the object. The smaller the render order, the earlier it gets rendered.
   public int renderOrder = 0;
 
-  // accessible variables
-  public double rawWidth;
-  public double rawHeight;
-  public double width;
-  public double height;
-  
+  ///////////////////////////////////////////////
+
+  // readonly variables
+  private double rawWidth;
+  private double rawHeight;
+  private double width;
+  private double height;
+
   // instance variables
   private Node image;
   private GraphicsContext graphicsContext;
+  private int oldRenderOrder;
 
   @Override
   public ComponentUpdateOrder COMPONENT_UPDATE_ORDER() {
@@ -40,6 +45,9 @@ public class RenderHandler extends GameComponent {
     rawHeight = 0;
     width = 0;
     height = 0;
+    oldRenderOrder = renderOrder;
+
+    updateRenderOrder();
   }
 
   @Override
@@ -53,22 +61,30 @@ public class RenderHandler extends GameComponent {
       return;
     }
 
+    // Update the render order
+    if (oldRenderOrder != renderOrder) {
+      updateRenderOrder();
+      oldRenderOrder = renderOrder;
+    }
+
     handleRenderShape();
   }
   
   @Override
   public void update() {
-    if (image == null) {
-      return;
+    synchronized (this) {
+      if (image == null) {
+        return;
+      }
+
+      // Capture the transformed image
+      SnapshotParameters params = new SnapshotParameters();
+      params.setFill(Color.TRANSPARENT);
+      WritableImage snapshot = image.snapshot(params, null);
+
+      // Draw the image at the correct transformed position
+      graphicsContext.drawImage(snapshot, transform.position.getX() - width / 2, transform.position.getY() - height / 2);
     }
-
-    // Capture the transformed image
-    SnapshotParameters params = new SnapshotParameters();
-    params.setFill(Color.TRANSPARENT);
-    WritableImage snapshot = image.snapshot(params, null);
-
-    // Draw the image at the correct transformed position
-    graphicsContext.drawImage(snapshot, transform.position.getX() - width / 2, transform.position.getY() - height / 2);
   }
 
   private void handleRenderShape() {
@@ -99,15 +115,62 @@ public class RenderHandler extends GameComponent {
     height = image.getBoundsInParent().getHeight();
   }
 
+  private void updateRenderOrder() {
+    ArrayList<GameComponent> renderComponents = GameComponent.allComponents.get(gameObject.getScene()).get(ComponentUpdateOrder.RENDER);
+
+    // The smaller the renderOrder, the earlier it gets rendered, the back it is
+    renderComponents.sort(Comparator.comparingInt(c -> ((RenderHandler) c).renderOrder));
+  }
+
   /* API BELOW */
 
+  /**
+   * Set the image to be rendered
+   * @param image The image to be rendered
+   */
   public void setImage(Node image) {
     this.image = image;
     this.rawWidth = image.getBoundsInParent().getWidth();
     this.rawHeight = image.getBoundsInParent().getHeight();
   }
 
+  /**
+   * Get the image to be rendered
+   * @return The image to be rendered
+   */
   public Node getImage() {
     return image;
+  }
+
+  /**
+   * Get the width of the rendered image
+   * @return The width of the rendered image
+   */
+  public double getWidth() {
+    return width;
+  }
+
+  /**
+   * Get the height of the rendered image
+   * @return The height of the rendered image
+   */
+  public double getHeight() {
+    return height;
+  }
+
+  /**
+   * Get the raw width of the rendered image
+   * @return The raw width of the rendered image
+   */
+  public double getRawWidth() {
+    return rawWidth;
+  }
+
+  /**
+   * Get the raw height of the rendered image
+   * @return The raw height of the rendered image
+   */
+  public double getRawHeight() {
+    return rawHeight;
   }
 }

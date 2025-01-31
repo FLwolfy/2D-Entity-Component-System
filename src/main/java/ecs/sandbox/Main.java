@@ -1,12 +1,13 @@
 package ecs.sandbox;
 
 import ecs.engine.base.Game;
-import ecs.sandbox.scene.TestScene;
+import ecs.sandbox.scene.ExampleScene;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
 /**
- * Hello world!
+ * The main class for the application.
+ * @author Hsuan-Kai Liao
  */
 public class Main extends Application {
 
@@ -17,12 +18,14 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage stage) {
-        // Create the game
+        // Create the game instance
         Game game = new Game(stage);
 
-        // Set the initial scene
-        game.addGameScene(TestScene.class);
-        game.setStartScene(TestScene.class);
+        // Add all the required game scenes here
+        game.addGameScene(ExampleScene.class);
+
+        // Set the start scene
+        game.setStartScene(ExampleScene.class);
 
         // Start the game
         game.start();

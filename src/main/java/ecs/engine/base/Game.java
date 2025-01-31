@@ -22,6 +22,10 @@ public class Game {
   private static final double TIME_PER_FRAME = 1.0 / MAX_FRAME_RATE;
   private long lastTime = System.nanoTime();
 
+  /**
+   * Create a new game
+   * @param stage The stage (application window) to use for the game
+   */
   public Game(Stage stage) {
     this.stage = stage;
 
@@ -34,22 +38,6 @@ public class Game {
     stage.setTitle(TITLE);
     stage.setScene(scene);
     stage.show();
-  }
-
-  public void start() {
-    // start the stage
-    stage.show();
-
-    // Start the game loop
-    startGameLoop();
-  }
-
-  public <T extends GameScene> void addGameScene(Class<T> sceneClass) {
-    GameScene.addScene(sceneClass);
-  }
-
-  public <T extends GameScene> void setStartScene(Class<T> sceneClass) {
-    GameScene.setActiveScene(sceneClass);
   }
 
   private void setupCanvases(Scene scene) {
@@ -88,5 +76,36 @@ public class Game {
     });
     gameLoopThread.setDaemon(true);
     gameLoopThread.start();
+  }
+
+  /* API HERE */
+
+  /**
+   * Start the game
+   */
+  public void start() {
+    // start the stage
+    stage.show();
+
+    // Start the game loop
+    startGameLoop();
+  }
+
+  /**
+   * Add a game scene to the game
+   * @param sceneClass The class of the scene to add
+   * @param <T> The type of the scene to add
+   */
+  public <T extends GameScene> void addGameScene(Class<T> sceneClass) {
+    GameScene.addScene(sceneClass);
+  }
+
+  /**
+   * Set the start scene of the game
+   * @param sceneClass The class of the scene to set as the start scene
+   * @param <T> The type of the scene to set as the start scene
+   */
+  public <T extends GameScene> void setStartScene(Class<T> sceneClass) {
+    GameScene.setActiveScene(sceneClass);
   }
 }

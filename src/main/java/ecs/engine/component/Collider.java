@@ -2,8 +2,6 @@ package ecs.engine.component;
 
 import ecs.engine.base.GameComponent;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -13,29 +11,33 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 
 public abstract class Collider<T extends Shape> extends GameComponent {
-  private static final Set<Collider<?>> allColliders = new HashSet<>();
+  ////////////// Component Settings //////////////
 
-  // Settings
+  /// Whether the collider is a trigger.
   public boolean isTrigger = false;
-  public boolean canSameTagCollide = false;
+  /// Whether the colliders with the same tag can collide with each other.
+  public boolean canCollideSameTag = false;
 
-  // Accessible variables
-  public Point2D triggerStartPoint = null;
-  public Point2D triggerEndPoint = null;
-  public Point2D collisionPoint = null;
+  ////////////////////////////////////////////////
+
+  // readonly variables
+  private Point2D triggerStartPoint;
+  private Point2D triggerEndPoint;
+  private Point2D collisionPoint;
 
   // instance variables
   private final ArrayList<Collider<?>> onCollideColliders = new ArrayList<>();
-
-  protected double rawWidth;
-  protected double rawHeight;
-  protected Shape shape;
-  private Point2D collisionVelocityToBeSet;
+  private Point2D collisionVelocityToBeSet; // THis will be set in the next frame
   private Point2D triggerIntersectCenter;
   private Consumer<Collider<?>> onTriggerEnter;
   private Consumer<Collider<?>> onTriggerStay;
   private Consumer<Collider<?>> onTriggerExit;
   private boolean isTriggering;
+
+  // collider attributes
+  protected Shape shape;
+  protected double rawWidth;
+  protected double rawHeight;
 
   @Override
   public final ComponentUpdateOrder COMPONENT_UPDATE_ORDER() {
@@ -44,7 +46,9 @@ public abstract class Collider<T extends Shape> extends GameComponent {
 
   @Override
   public final void onAttached() {
-    allColliders.add(this);
+    triggerStartPoint = null;
+    triggerEndPoint = null;
+    collisionPoint = null;
   }
 
   @Override
@@ -58,19 +62,13 @@ public abstract class Collider<T extends Shape> extends GameComponent {
       return;
     }
 
-    // Update the collider physics and events
-    for (Collider<?> collider : allColliders) {
-      if (collider.gameObject.getScene() == null || !collider.gameObject.getScene().isActive) {
-        continue;
-      }
-      collider.handleColliderPhysics();
-      collider.handleCollisionEvents();
-    }
+    handleColliderPhysics();
+    handleCollisionEvents();
   }
 
   @Override
   public final void onDetached() {
-    allColliders.remove(this);
+    // DO NOTHING
   }
 
   private void handleColliderShape() {
@@ -122,8 +120,10 @@ public abstract class Collider<T extends Shape> extends GameComponent {
   private void handleCollisionEvents() {
     boolean onCollision = false;
 
-    for (Collider<?> other : allColliders) {
-      if ((!canSameTagCollide && other.gameObject.TAG() == gameObject.TAG()) || other.gameObject.getScene() == null || !other.gameObject.getScene().isActive) {
+    for (GameComponent otherCollier : GameComponent.allComponents.get(gameObject.getScene()).get(ComponentUpdateOrder.COLLISION)) {
+      Collider<?> other = (Collider<?>) otherCollier;
+
+      if ((!canCollideSameTag && other.gameObject.TAG() == gameObject.TAG()) || other.gameObject.getScene() == null || !other.gameObject.getScene().isActive) {
         continue;
       }
 
@@ -256,6 +256,8 @@ public abstract class Collider<T extends Shape> extends GameComponent {
    * Get the normalized normal vector of the collider.
    * Since the collision calculation is based on the normal vector, this is really important.
    * This method should be implemented by the subclass.
+   *
+   * @param collisionPoint The point of the collision
    */
   protected abstract Point2D getNormalVector(Point2D collisionPoint);
 
@@ -263,6 +265,8 @@ public abstract class Collider<T extends Shape> extends GameComponent {
 
   /**
    * Check if a point is within the collider.
+   *
+   * @param point The point to check
    */
   public boolean isWithin(Point2D point) {
     if (shape == null) {
@@ -272,20 +276,17 @@ public abstract class Collider<T extends Shape> extends GameComponent {
     // Transform the point back to the local coordinate system manually
     Point2D localPoint = point;
     for (var transform : shape.getTransforms()) {
-      if (transform instanceof Translate) {
-        Translate translate = (Translate) transform;
+      if (transform instanceof Translate translate) {
         localPoint = new Point2D(
             localPoint.getX() - translate.getX(),
             localPoint.getY() - translate.getY()
         );
-      } else if (transform instanceof Scale) {
-        Scale scale = (Scale) transform;
+      } else if (transform instanceof Scale scale) {
         localPoint = new Point2D(
             localPoint.getX() / scale.getX(),
             localPoint.getY() / scale.getY()
         );
-      } else if (transform instanceof Rotate) {
-        Rotate rotate = (Rotate) transform;
+      } else if (transform instanceof Rotate rotate) {
         double angle = -Math.toRadians(rotate.getAngle());
         double pivotX = rotate.getPivotX();
         double pivotY = rotate.getPivotY();
@@ -307,6 +308,8 @@ public abstract class Collider<T extends Shape> extends GameComponent {
   /**
    * Set the shape of the collider.
    * This needs to be called after the collider is attached to a GameObject.
+   *
+   * @param shape The shape of the collider
    */
   public void setShape(T shape) {
     this.shape = shape;
@@ -315,15 +318,54 @@ public abstract class Collider<T extends Shape> extends GameComponent {
     handleColliderShape();
   }
 
+  /**
+   * Set the event when the collider enters a trigger.
+   * This event will be triggered only once when the collider first enters a trigger.
+   *
+   * @param onTriggerEnter The event to be triggered
+   */
   public void setOnTriggerEnter(Consumer<Collider<?>> onTriggerEnter) {
     this.onTriggerEnter = onTriggerEnter;
   }
 
+  /**
+   * Set the event when the collider stays in a trigger.
+   * This event will be triggered every frame while the collider is in a trigger.
+   *
+   * @param onTriggerStay The event to be triggered
+   */
   public void setOnTriggerStay(Consumer<Collider<?>> onTriggerStay) {
     this.onTriggerStay = onTriggerStay;
   }
 
+  /**
+   * Set the event when the collider exits a trigger.
+   * This event will be triggered only once when the collider exits a trigger.
+   *
+   * @param onTriggerExit The event to be triggered
+   */
   public void setOnTriggerExit(Consumer<Collider<?>> onTriggerExit) {
     this.onTriggerExit = onTriggerExit;
+  }
+
+  /**
+   * Get the start point of the trigger.
+   */
+  public Point2D getTriggerStartPoint() {
+    return triggerStartPoint;
+  }
+
+  /**
+   * Get the end point of the trigger.
+   */
+  public Point2D getTriggerEndPoint() {
+    return triggerEndPoint;
+  }
+
+  /**
+   * Get the collision point of the collider.
+   */
+  public Point2D getCollisionPoint() {
+    return collisionPoint;
   }
 }

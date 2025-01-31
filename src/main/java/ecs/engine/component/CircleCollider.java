@@ -5,9 +5,10 @@ import javafx.scene.shape.Circle;
 
 public class CircleCollider extends Collider<Circle>{
 
-  public double radius;
-  public double radiusX;
-  public double radiusY;
+  // readonly variables
+  private double radius;
+  private double radiusX;
+  private double radiusY;
 
   @Override
   protected void updateColliderAttributes() {
@@ -36,5 +37,29 @@ public class CircleCollider extends Collider<Circle>{
     double worldNormY = normX * sinTheta + normY * cosTheta;
 
     return new Point2D(worldNormX, worldNormY).normalize();
+  }
+
+  /* API HERE */
+
+  /**
+   * Get the radius of the circle collider.
+   * If the circle is not a perfect circle, the smallest radius will be returned.
+   */
+  public double getRadius() {
+    return radius;
+  }
+
+  /**
+   * Get the radius of the circle collider in the X axis
+   */
+  public double getRadiusX() {
+    return radiusX;
+  }
+
+  /**
+   * Get the radius of the circle collider in the Y axis
+   */
+  public double getRadiusY() {
+    return radiusY;
   }
 }

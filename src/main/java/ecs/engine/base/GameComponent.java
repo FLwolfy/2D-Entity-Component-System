@@ -1,8 +1,16 @@
 package ecs.engine.base;
 
 import ecs.engine.component.Transform;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class GameComponent {
+
+  /**
+   * The list of all game components in the game.
+   */
+  public final static Map<GameScene, Map<ComponentUpdateOrder, ArrayList<GameComponent>>> allComponents = new HashMap<>();
 
   /**
    * The order of the update of the component.
@@ -17,22 +25,27 @@ public abstract class GameComponent {
   }
 
   /**
-   * The GameObject that this gamecomponent is attached to.
+   * The GameObject that this game component is attached to.
    */
-  public GameObject gameObject;
+  public final GameObject gameObject; // This is initialized using reflection in GameObject
 
   /**
-   * The Transform component of the GameObject that this gamecomponent is attached to.
+   * The Transform component of the GameObject that this game component is attached to.
    */
-  public Transform transform;
+  public final Transform transform; // This is initialized using reflection in GameObject
+
+  /* OVERRIDABLE METHODS BELOW */
+
+  protected GameComponent() {
+    gameObject = null;
+    transform = null;
+  }
 
   /**
    * The order of the update of this component.
    * This method MUST be declared for frame update use.
    */
   public abstract ComponentUpdateOrder COMPONENT_UPDATE_ORDER();
-
-  /* OVERRIDABLE METHODS BELOW */
 
   /**
    * Called in the very next frame to do the start-ups.
