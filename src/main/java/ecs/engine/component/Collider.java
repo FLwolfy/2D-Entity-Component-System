@@ -123,7 +123,7 @@ public abstract class Collider<T extends Shape> extends GameComponent {
     for (GameComponent otherCollier : GameComponent.allComponents.get(gameObject.getScene()).get(ComponentUpdateOrder.COLLISION)) {
       Collider<?> other = (Collider<?>) otherCollier;
 
-      if ((!canCollideSameTag && other.gameObject.TAG() == gameObject.TAG()) || other.gameObject.getScene() == null || !other.gameObject.getScene().isActive) {
+      if ((!canCollideSameTag && other.gameObject.TAG() == gameObject.TAG())) {
         continue;
       }
 

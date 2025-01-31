@@ -16,8 +16,20 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.StackPane;
 
 public abstract class GameScene {
+  ////////////// Component Constants //////////////
+
+  /// The width of the scene.
+  public final double width;
+  /// The height of the scene.
+  public final double height;
+  /// The unit width of the scene (width / 100).
+  public final double uW;
+  /// The unit height of the scene (height / 100).
+  public final double uH;
+
+  /////////////////////////////////////////////////
+
   // static variables
-  public static double deltaTime;
   private static final Map<Class<? extends GameScene>, GameScene> allScenes = new HashMap<>();
   private static final ArrayList<EventHandler<ActionEvent>> subscribedActions = new ArrayList<>();
   private static EventHandler<ActionEvent> sceneChangeAction;
@@ -25,12 +37,9 @@ public abstract class GameScene {
   private static GameScene previousScene;
   private static GameScene currentScene;
 
-  // scene attributes
-  public final double width;
-  public final double height;
-  public final double uW;
-  public final double uH;
-  public boolean isActive;
+  // readonly variables
+  private static Double deltaTime;
+  private boolean isActive;
 
   // instance variables
   private final ArrayList<GameObject> allObjects;
@@ -78,6 +87,7 @@ public abstract class GameScene {
   }
 
   /* API BELOW */
+
   /**
    * Set the inner JAVAFX scene of the game.
    */
@@ -108,9 +118,16 @@ public abstract class GameScene {
   }
 
   /**
+   * Get the delta time between the current frame and the previous frame.
+   */
+  public static double getDeltaTime() {
+    return deltaTime;
+  }
+
+  /**
    * Get the scene of the specified class type.
    */
-  public static <T extends GameScene> T getScene(Class<T> sceneClass) {
+  public static <T extends GameScene> T getGameScene(Class<T> sceneClass) {
     return (T) allScenes.get(sceneClass);
   }
 
@@ -304,6 +321,13 @@ public abstract class GameScene {
    */
   public void subscribeAction(EventHandler<ActionEvent> action) {
     subscribedActions.add(action);
+  }
+
+  /**
+   * Whether the scene is currently active.
+   */
+  public boolean isActive() {
+    return isActive;
   }
 
   /**

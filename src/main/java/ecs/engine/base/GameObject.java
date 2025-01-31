@@ -15,7 +15,7 @@ public abstract class GameObject {
   private GameScene attachedScene; // This is initialized using reflection in GameScene
   private final Map<Class<? extends GameComponent>, GameComponent> attachedComponents;
 
-  public GameObject() {
+  protected GameObject() {
     // Initialize gamecomponents
     this.attachedComponents = new HashMap<>();
 
