@@ -67,7 +67,7 @@ public class PhysicsHandler extends GameComponent {
     angularVelocity = 0;
     angularAcceleration = 0;
     gravitation = 1000;
-    airResistancePercentage = 0.075;
+    airResistancePercentage = 0.25;
   }
 
   @Override
