@@ -1,9 +1,11 @@
 # 2D Entity-Component-System (ECS) in JavaFX
 
 ## 1. Introduction
+
+### 1.1 About This Project
 This document provides an overview of the 2D Entity-Component-System (ECS) framework using JavaFX. The system is designed to manage game objects efficiently, separating concerns between objects, behaviors, and scenes. If you think the structure helpful or fun, please ⭐️ star this project, thank you!
 
-## 2. Dependencies
+### 1.2 Dependencies
 This project requires:
 - **JavaFX** for UI rendering and interaction.
 - **Java 21 or later** to leverage modern language features and improvements.
