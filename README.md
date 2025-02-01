@@ -101,7 +101,7 @@ Components define different functionalities that can be attached to a `GameObjec
 1. **Transform**: Stores position, rotation, and scale of an object.
 2. **RenderHandler**: Handles rendering logic for the object.
 3. **PhysicsHandler**: Manages physics-related properties such as velocity and acceleration.
-4. **Collider**: Defines collision boundaries and detection logic.
+4. **Collider**: Defines collision normals and detection logic.
 
 A `GameObject` must attach components in its `init()` method using `attachComponent(Class)`. Example:
 
