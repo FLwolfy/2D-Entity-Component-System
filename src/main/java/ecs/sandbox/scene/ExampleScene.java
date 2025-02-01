@@ -7,9 +7,10 @@ import java.util.ArrayList;
 
 public class ExampleScene extends GameScene {
 
-  // Store the bouncer game objects
+  // Store the game objects
   private final ArrayList<Bouncer> bouncers = new ArrayList<>();
 
+  // Ths is used for setting up the game objects in the scene
   @Override
   public void setUp() {
     // Create the bouncers

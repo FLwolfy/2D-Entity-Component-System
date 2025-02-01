@@ -13,19 +13,13 @@ import java.util.Map;
  */
 public abstract class GameComponent {
 
-  /**
-   * The list of all game components in the game.
-   */
+  /// The list of all game components in the game.
   public final static Map<GameScene, Map<ComponentUpdateTag, ArrayList<GameComponent>>> allComponents = new HashMap<>();
 
-  /**
-   * The GameObject that this game component is attached to.
-   */
+  /// The GameObject that this game component is attached to.
   public final GameObject gameObject; // This is initialized using reflection in GameObject
 
-  /**
-   * The Transform component of the GameObject that this game component is attached to.
-   */
+  /// The Transform component of the GameObject that this game component is attached to.
   public final Transform transform; // This is initialized using reflection in GameObject
 
   /* OVERRIDABLE METHODS BELOW */
@@ -55,6 +49,8 @@ public abstract class GameComponent {
     }
     return gameObject.getAllComponents();
   }
+
+  /* OVERRIDABLE METHODS BELOW */
 
   /**
    * The order of the update of this component.
