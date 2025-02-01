@@ -21,6 +21,10 @@ All files and scripts should be placed in the `sandbox` package. The framework c
 
 #### 2.2.1 Defining a Scene
 Each scene extends `GameScene` and defines its setup and interaction logic.
+A scene represents a game level or state where objects exist and interact.
+
+- `setUp()`: Called at the beginning to initialize objects.
+- `interact()`: Called every frame to manage object interactions.
 
 ```java
 package sandbox;
@@ -41,6 +45,10 @@ public class ExampleScene extends GameScene {
 
 #### 2.2.2 Creating a Game Object
 Each game object extends `GameObject` and defines its unique identifier and initialization logic.
+Represents an entity in the game world.
+
+- `OBJECT_TAG()`: Returns a unique identifier for the object.
+- `init()`: Called when the object is created (instead of a constructor).
 
 ```java
 package sandbox;
@@ -61,6 +69,11 @@ public class ExampleObject extends GameObject {
 
 #### 2.2.3 Implementing Behavior
 Behaviors define logic that can be attached to game objects. They extend `EntityBehavior` and implement lifecycle methods.
+Defines behavior that can be attached to a game object.
+
+- `awake()`: Called when the object is created to obtain references.
+- `start()`: Called when the object is initialized.
+- `update()`: Called every frame if the behavior is enabled.
 
 ```java
 package sandbox;
@@ -86,24 +99,7 @@ public class ExampleBehavior extends EntityBehavior {
 
 ## 3. Core Concepts
 
-### 3.1 GameScene
-A scene represents a game level or state where objects exist and interact.
 
-- `setUp()`: Called at the beginning to initialize objects.
-- `interact()`: Called every frame to manage object interactions.
-
-### 3.2 GameObject
-Represents an entity in the game world.
-
-- `OBJECT_TAG()`: Returns a unique identifier for the object.
-- `init()`: Called when the object is created (instead of a constructor).
-
-### 3.3 EntityBehavior
-Defines behavior that can be attached to a game object.
-
-- `awake()`: Called when the object is created to obtain references.
-- `start()`: Called when the object is initialized.
-- `update()`: Called every frame if the behavior is enabled.
 
 ## 4. Notes
 This framework is designed to be simple and flexible, allowing for easy extension and customization. It separates concerns between game objects, behaviors, and scenes, enabling efficient management of game entities.
