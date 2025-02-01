@@ -27,8 +27,6 @@ A scene represents a game level or state where objects exist and interact.
 - `interact()`: Called every frame to manage object interactions.
 
 ```java
-package sandbox;
-
 public class ExampleScene extends GameScene {
 
     @Override
@@ -51,8 +49,6 @@ Represents an entity in the game world.
 - `init()`: Called when the object is created (instead of a constructor).
 
 ```java
-package sandbox;
-
 public class ExampleObject extends GameObject {
 
     @Override
@@ -76,8 +72,6 @@ Defines behavior that can be attached to a game object.
 - `update()`: Called every frame if the behavior is enabled.
 
 ```java
-package sandbox;
-
 public class ExampleBehavior extends EntityBehavior {
 
     @Override
@@ -99,7 +93,36 @@ public class ExampleBehavior extends EntityBehavior {
 
 ## 3. Core Concepts
 
+### 3.1 Components
+Components define different functionalities that can be attached to a `GameObject`. The ECS framework provides four core components:
 
+1. **Transform**: Stores position, rotation, and scale of an object.
+2. **RenderHandler**: Handles rendering logic for the object.
+3. **PhysicsHandler**: Manages physics-related properties such as velocity and acceleration.
+4. **Collider**: Defines collision boundaries and detection logic.
+
+A `GameObject` must attach components in its `init()` method using `attachComponent(Class)`. Example:
+
+```java
+@Override
+public void init() {
+    attachComponent(PhysicsHandler.class);
+    attachComponent(RenderHandler.class);
+    attachComponent(ExampleBehavior.class);
+}
+```
+
+### 3.2 EntityBehavior
+A `EntityBehavior` defines game logic and must be attached to a `GameObject`. To interact with components, it uses `getComponent(Class)`. Example:
+
+```java
+private PhysicsHandler physicsHandler;
+
+@Override
+public void awake() {
+    physicsHandler = getComponent(PhysicsHandler.class);
+}
+```
 
 ## 4. Notes
 This framework is designed to be simple and flexible, allowing for easy extension and customization. It separates concerns between game objects, behaviors, and scenes, enabling efficient management of game entities.
