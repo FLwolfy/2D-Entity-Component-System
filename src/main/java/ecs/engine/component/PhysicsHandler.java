@@ -2,8 +2,12 @@ package ecs.engine.component;
 
 import ecs.engine.base.GameComponent;
 import ecs.engine.base.GameScene;
+import ecs.engine.tag.ComponentUpdateTag;
 import javafx.geometry.Point2D;
 
+/**
+ * The component that handles the physics of the entity.
+ */
 public class PhysicsHandler extends GameComponent {
 
   ////////////// Component Constants //////////////
@@ -51,8 +55,8 @@ public class PhysicsHandler extends GameComponent {
   private double realAirResistancePercentage; // per rate
 
   @Override
-  public ComponentUpdateOrder COMPONENT_UPDATE_ORDER() {
-    return ComponentUpdateOrder.PHYSICS;
+  public ComponentUpdateTag COMPONENT_UPDATE_TAG() {
+    return ComponentUpdateTag.PHYSICS;
   }
 
   @Override
@@ -62,8 +66,8 @@ public class PhysicsHandler extends GameComponent {
     acceleration = new Point2D(0, 0);
     angularVelocity = 0;
     angularAcceleration = 0;
-    gravitation = 981;
-    airResistancePercentage = 0.05;
+    gravitation = 1000;
+    airResistancePercentage = 0.075;
   }
 
   @Override

@@ -8,12 +8,19 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 
+/**
+ * The main class for the game.
+ * This class is responsible for setting up the game and starting the game loop.
+ */
 public class Game {
+  ////////////// Game Constants //////////////
   public static final int WIDTH = 800;
   public static final int HEIGHT = 600;
   public static final String TITLE = "ECS Example";
   public static final Paint DEFAULT_BACKGROUND = Paint.valueOf("#202020");
   public static final double MAX_FRAME_RATE = 60.0;
+
+  ///////////////////////////////////////////
 
   // Stage for the game
   private Stage stage;

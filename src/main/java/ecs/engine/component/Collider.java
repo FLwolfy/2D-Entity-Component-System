@@ -1,6 +1,7 @@
 package ecs.engine.component;
 
 import ecs.engine.base.GameComponent;
+import ecs.engine.tag.ComponentUpdateTag;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 import javafx.geometry.Bounds;
@@ -10,6 +11,10 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 
+/**
+ * The component that handles the collision of the entity.
+ * @param <T> The type of the shape of the collider
+ */
 public abstract class Collider<T extends Shape> extends GameComponent {
   ////////////// Component Settings //////////////
 
@@ -40,8 +45,8 @@ public abstract class Collider<T extends Shape> extends GameComponent {
   protected double rawHeight;
 
   @Override
-  public final ComponentUpdateOrder COMPONENT_UPDATE_ORDER() {
-    return ComponentUpdateOrder.COLLISION;
+  public final ComponentUpdateTag COMPONENT_UPDATE_TAG() {
+    return ComponentUpdateTag.COLLISION;
   }
 
   @Override
@@ -109,7 +114,7 @@ public abstract class Collider<T extends Shape> extends GameComponent {
 
     // Handle the collision velocity
     if (collisionVelocityToBeSet != null) {
-      PhysicsHandler physicsHandler = gameObject.getComponent(PhysicsHandler.class);
+      PhysicsHandler physicsHandler = getComponent(PhysicsHandler.class);
       if (physicsHandler != null) {
         physicsHandler.velocity = collisionVelocityToBeSet;
         collisionVelocityToBeSet = null;
@@ -120,10 +125,11 @@ public abstract class Collider<T extends Shape> extends GameComponent {
   private void handleCollisionEvents() {
     boolean onCollision = false;
 
-    for (GameComponent otherCollier : GameComponent.allComponents.get(gameObject.getScene()).get(ComponentUpdateOrder.COLLISION)) {
+    for (GameComponent otherCollier : GameComponent.allComponents.get(gameObject.getScene()).get(
+        ComponentUpdateTag.COLLISION)) {
       Collider<?> other = (Collider<?>) otherCollier;
 
-      if ((!canCollideSameTag && other.gameObject.TAG() == gameObject.TAG())) {
+      if ((!canCollideSameTag && other.gameObject.OBJECT_TAG() == gameObject.OBJECT_TAG())) {
         continue;
       }
 
@@ -206,12 +212,12 @@ public abstract class Collider<T extends Shape> extends GameComponent {
       return null;
     }
 
-    PhysicsHandler physicsHandler = gameObject.getComponent(PhysicsHandler.class);
+    PhysicsHandler physicsHandler = getComponent(PhysicsHandler.class);
     if (physicsHandler == null || physicsHandler.isStatic) {
       return null;
     }
 
-    PhysicsHandler otherPhysicsHandler = other.gameObject.getComponent(PhysicsHandler.class);
+    PhysicsHandler otherPhysicsHandler = other.getComponent(PhysicsHandler.class);
 
     // get the center of the normal vector
     Point2D normal = getNormalVector(collisionPoint);

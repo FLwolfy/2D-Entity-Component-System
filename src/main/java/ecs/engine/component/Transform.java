@@ -1,8 +1,12 @@
 package ecs.engine.component;
 
 import ecs.engine.base.GameComponent;
+import ecs.engine.tag.ComponentUpdateTag;
 import javafx.geometry.Point2D;
 
+/**
+ * The component that stores the position, scale, and rotation of the entity.
+ */
 public class Transform extends GameComponent {
   ////////////// Modifiable Fields //////////////
 
@@ -16,8 +20,8 @@ public class Transform extends GameComponent {
   ///////////////////////////////////////////////
 
   @Override
-  public ComponentUpdateOrder COMPONENT_UPDATE_ORDER() {
-    return ComponentUpdateOrder.TRANSFORM;
+  public ComponentUpdateTag COMPONENT_UPDATE_TAG() {
+    return ComponentUpdateTag.TRANSFORM;
   }
 
   @Override

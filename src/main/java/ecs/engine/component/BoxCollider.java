@@ -5,6 +5,9 @@ import java.util.List;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * The collider that represents a rectangular shape.
+ */
 public class BoxCollider extends Collider<Rectangle> {
 
   ////////////// Component Constants //////////////

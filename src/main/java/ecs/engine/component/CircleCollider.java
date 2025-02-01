@@ -3,6 +3,9 @@ package ecs.engine.component;
 import javafx.geometry.Point2D;
 import javafx.scene.shape.Circle;
 
+/**
+ * The collider that represents a circular shape.
+ */
 public class CircleCollider extends Collider<Circle>{
 
   // readonly variables

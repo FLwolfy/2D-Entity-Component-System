@@ -25,6 +25,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javafx.scene.image.ImageView;
 
+/**
+ * A class that loads images, levels, and serializable properties from the resources directory.
+ */
 public class GameSourceLoader {
   private static final GameSourceLoader instance = new GameSourceLoader();
 

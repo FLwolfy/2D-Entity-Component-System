@@ -1,7 +1,10 @@
 package ecs.engine.base;
 
-import ecs.engine.base.GameComponent.ComponentUpdateOrder;
+import ecs.engine.component.EntityBehavior;
+import ecs.engine.tag.ComponentUpdateTag;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +18,13 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.StackPane;
 
+/**
+ * The base class for the game scene.
+ * The game scene is the main container of the game objects and components.
+ * The game scene is responsible for updating the game objects and components in every frame.
+ */
 public abstract class GameScene {
-  ////////////// Component Constants //////////////
+  ////////////// GameScene Constants //////////////
 
   /// The width of the scene.
   public final double width;
@@ -27,12 +35,12 @@ public abstract class GameScene {
   /// The unit height of the scene (height / 100).
   public final double uH;
 
-  /////////////////////////////////////////////////
+  ////////////////////////////////////////////////
 
   // static variables
   private static final Map<Class<? extends GameScene>, GameScene> allScenes = new HashMap<>();
   private static final ArrayList<EventHandler<ActionEvent>> subscribedActions = new ArrayList<>();
-  private static EventHandler<ActionEvent> sceneChangeAction;
+  private static final ArrayList<EventHandler<ActionEvent>> sceneActions = new ArrayList<>();
   private static Scene FXscene;
   private static GameScene previousScene;
   private static GameScene currentScene;
@@ -61,7 +69,7 @@ public abstract class GameScene {
 
     // Initialize the component list
     GameComponent.allComponents.put(this, new HashMap<>());
-    for (ComponentUpdateOrder order : ComponentUpdateOrder.values()) {
+    for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
       GameComponent.allComponents.get(this).put(order, new ArrayList<>());
     }
 
@@ -98,6 +106,7 @@ public abstract class GameScene {
   /**
    * Add a new scene to the game. The first scene added will be the current scene.
    * Once the scene is added, there is NO WAY you can remove it.
+   * You should NOT add the scene when the game is running.
    */
   public static <T extends GameScene> void addScene(Class<T> sceneClass) {
     if (allScenes.containsKey(sceneClass)) {
@@ -111,7 +120,7 @@ public abstract class GameScene {
         currentScene = scene;
       }
 
-      subscribedActions.add(e -> scene.start());
+      sceneActions.add(e -> scene.setUp());
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -189,16 +198,16 @@ public abstract class GameScene {
     subscribedActions.subList(0, size).clear();
 
     // 3. Update transform
-    for (ComponentUpdateOrder order : ComponentUpdateOrder.values()) {
+    for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
       for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.transformUpdate();
       }
     }
 
     // 4. Update the components based on the order
-    for (ComponentUpdateOrder order : ComponentUpdateOrder.values()) {
-      // Skip the render handler
-      if (order == ComponentUpdateOrder.RENDER) {
+    for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
+      // Skip the render handler and the behavior
+      if (order == ComponentUpdateTag.RENDER || order == ComponentUpdateTag.BEHAVIOR) {
         continue;
       }
 
@@ -208,13 +217,29 @@ public abstract class GameScene {
       }
     }
 
-    // 5. Update the gameobjects
-    for (GameObject object : currentScene.allObjects) {
-      object.update();
+    // 5. Update the game behavior
+    for (GameComponent behavior : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.BEHAVIOR)) {
+      if (((EntityBehavior) behavior).isEnable()) {
+        behavior.update();
+      }
     }
 
     // 6. Update the late update
-    currentScene.lateUpdate();
+    currentScene.interact();
+
+    // 7. Update the late update
+    for (GameComponent behavior : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.BEHAVIOR)) {
+      if (((EntityBehavior) behavior).isEnable()) {
+        ((EntityBehavior) behavior).lateUpdate();
+      }
+    }
+
+    // 8. Update the scene actions
+    size = sceneActions.size();
+    for (int i = 0; i < size; i++) {
+      sceneActions.get(i).handle(new ActionEvent());
+    }
+    sceneActions.subList(0, size).clear();
   }
 
   /**
@@ -231,7 +256,8 @@ public abstract class GameScene {
     gc.clearRect(0, 0, FXscene.getWidth(), FXscene.getHeight());
 
     // Render the gameComponents
-    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(ComponentUpdateOrder.RENDER)) {
+    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(
+        ComponentUpdateTag.RENDER)) {
       component.update();
     }
   }
@@ -241,8 +267,8 @@ public abstract class GameScene {
    * This method will be called very lastly in the current frame.
    */
   public <T extends GameScene> void changeScene(Class<T> sceneClass) {
-    if (sceneChangeAction == null) {
-      sceneChangeAction = e -> setActiveScene(sceneClass);
+    if (sceneActions.isEmpty()) {
+      sceneActions.add(e -> setActiveScene(sceneClass));
     } else {
       throw new RuntimeException("Scene change is already in progress.");
     }
@@ -257,7 +283,7 @@ public abstract class GameScene {
 
     // register all the components associated with the object
     for (GameComponent component : object.getAllComponents().values()) {
-      GameComponent.allComponents.get(this).get(component.COMPONENT_UPDATE_ORDER()).add(component);
+      GameComponent.allComponents.get(this).get(component.COMPONENT_UPDATE_TAG()).add(component);
     }
 
     // give the gamescene reference to the object
@@ -269,31 +295,36 @@ public abstract class GameScene {
       throw new RuntimeException(e);
     }
     
-    // call the awake() method and subscribe the start() method
-    object.awake();
-    subscribedActions.add(e -> object.start());
+    // call the init() method
+    object.init();
   }
 
   /**
-   * Unregister the object from this scene.
+   * Destroy the object from this scene.
    * This will call the onDestroy() method immediately and the object will be removed from the scene.
    */
-  protected void unregisterObject(GameObject object) {
+  protected void destroyObject(GameObject object) {
     // called the onDestroy() method
     object.onDestroy();
 
     // unregister all the components associated with the object
     for (GameComponent component : object.getAllComponents().values()) {
-      GameComponent.allComponents.get(this).get(component.COMPONENT_UPDATE_ORDER()).remove(component);
+      GameComponent.allComponents.get(this).get(component.COMPONENT_UPDATE_TAG()).remove(component);
     }
-    object.detachAllComponents();
 
-    // Reset the gamescene reference of the object back to null
     try {
+      // detach all the components from the object
+      Class<?> clazz = object.getClass();
+      Method method = clazz.getDeclaredMethod("detachAllComponents");
+      method.setAccessible(true);
+      method.invoke(object);
+
+      // Reset the gamescene reference of the object back to null
       Field awakeField = GameObject.class.getDeclaredField("attachedScene");
       awakeField.setAccessible(true);
       awakeField.set(object, null);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException |
+             InvocationTargetException e) {
       throw new RuntimeException(e);
     }
 
@@ -359,10 +390,17 @@ public abstract class GameScene {
   /* OVERRIDABLE METHODS BELOW */
 
   /**
-   * Called in the very first frame when the gamescene is added on the game (before the first onActive()).
-   * This method should be overridden by subclasses as needed.
+   * Called in the very first frame when the game scene is added on the game (before the first onActive()).
+   * This method must be overridden by subclasses.
    */
-  public void start() {}
+  public abstract void setUp();
+
+  /**
+   * Called after all the game objects' components are updated in the current frame.
+   * This is used for handling the interactions between the game objects.
+   * This method must be overridden by subclasses.
+   */
+  public abstract void interact();
 
   /**
    * Called in the very next frame when the scene is active.
@@ -375,11 +413,4 @@ public abstract class GameScene {
    * This method should be overridden by subclasses as needed.
    */
   public void onSleep() {}
-
-  /**
-   * Called very lastly in every frame to do the final calculation.
-   * This is often used for handling inputs and scene changes.
-   * This method should be overridden by subclasses as needed.
-   */
-  public void lateUpdate() {}
 }

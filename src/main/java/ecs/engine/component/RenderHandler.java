@@ -2,6 +2,7 @@ package ecs.engine.component;
 
 import ecs.engine.base.GameComponent;
 import ecs.engine.base.GameScene;
+import ecs.engine.tag.ComponentUpdateTag;
 import java.util.ArrayList;
 import java.util.Comparator;
 import javafx.geometry.Bounds;
@@ -14,6 +15,9 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 
+/**
+ * The component that handles the rendering of the entity.
+ */
 public class RenderHandler extends GameComponent {
 
   ////////////// Component Settings //////////////
@@ -35,8 +39,8 @@ public class RenderHandler extends GameComponent {
   private int oldRenderOrder;
 
   @Override
-  public ComponentUpdateOrder COMPONENT_UPDATE_ORDER() {
-    return ComponentUpdateOrder.RENDER;
+  public ComponentUpdateTag COMPONENT_UPDATE_TAG() {
+    return ComponentUpdateTag.RENDER;
   }
 
   @Override
@@ -116,7 +120,8 @@ public class RenderHandler extends GameComponent {
   }
 
   private void updateRenderOrder() {
-    ArrayList<GameComponent> renderComponents = GameComponent.allComponents.get(gameObject.getScene()).get(ComponentUpdateOrder.RENDER);
+    ArrayList<GameComponent> renderComponents = GameComponent.allComponents.get(gameObject.getScene()).get(
+        ComponentUpdateTag.RENDER);
 
     // The smaller the renderOrder, the earlier it gets rendered, the back it is
     renderComponents.sort(Comparator.comparingInt(c -> ((RenderHandler) c).renderOrder));

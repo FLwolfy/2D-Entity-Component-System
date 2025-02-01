@@ -1,10 +1,14 @@
 package ecs.engine.base;
 
 import ecs.engine.component.Transform;
+import ecs.engine.tag.ObjectTag;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The base class for all objects in the game.
+ */
 public abstract class GameObject {
   /**
    * The Transform component of the GameObject.
@@ -53,8 +57,10 @@ public abstract class GameObject {
   /**
    * Attach a component of the specified class type to the GameObject, and return the added component instance.
    * If a component of the same class already exists, the method just returns the component instance.
+   * The Transform component is a default component such that it should not be attached.
+   * You should NOT attach the component while the game is running.
    */
-  public <T extends GameComponent> T attachComponent(Class<T> componentClass) {
+  protected  <T extends GameComponent> T attachComponent(Class<T> componentClass) {
     T checkedComponent = getComponent(componentClass);
     if (checkedComponent != null) {
         return checkedComponent;
@@ -65,7 +71,7 @@ public abstract class GameObject {
 
       // attach the component to the scene
       if (attachedScene != null) {
-        GameComponent.allComponents.get(attachedScene).get(component.COMPONENT_UPDATE_ORDER()).add(component);
+        GameComponent.allComponents.get(attachedScene).get(component.COMPONENT_UPDATE_TAG()).add(component);
       }
 
       // give the reference of the gameobject to the gamecomponent using reflection
@@ -101,7 +107,7 @@ public abstract class GameObject {
   /**
    * Detach a component of the specified class type from the GameObject.
    */
-  public <T extends GameComponent> void detachComponent(Class<T> componentClass) {
+  protected <T extends GameComponent> void detachComponent(Class<T> componentClass) {
     T component = getComponent(componentClass);
     if (component == null || component == transform) {
       return;
@@ -115,7 +121,7 @@ public abstract class GameObject {
 
       // remove the component from the game
       if (attachedScene != null) {
-        GameComponent.allComponents.get(attachedScene).get(component.COMPONENT_UPDATE_ORDER()).remove(component);
+        GameComponent.allComponents.get(attachedScene).get(component.COMPONENT_UPDATE_TAG()).remove(component);
       }
 
       // reset the reference of the gameobject of the gamecomponent back to null using reflection
@@ -136,7 +142,7 @@ public abstract class GameObject {
   /**
    * Detach all components from the GameObject.
    */
-  public void detachAllComponents() {
+  protected void detachAllComponents() { // This method is called in GameScene using reflection
     for (GameComponent component : attachedComponents.values()) {
       detachComponent(component.getClass());
     }
@@ -147,32 +153,18 @@ public abstract class GameObject {
    * The Tag of the gameObject.
    * This method MUST be declared for frame update use.
    */
-  public abstract int TAG();
-
-  /**
-   * Called every frame to update the state or behavior of the object.
-   * This method is called before all of its components' updates.
-   * This method should be overridden by subclasses as needed.
-   */
-  public void update() {}
+  public abstract ObjectTag OBJECT_TAG();
 
   /**
    * Called at the moment right after the object is registered on a scene.
    * Often times you should add GameComponents here.
    * This method should be overridden by subclasses as needed.
    */
-  public void awake() {}
-
-  /**
-   * Called in the very next frame to do the start-ups.
-   * It serves as an entry point for initializing the object and its attached components or defining
-   * any initial behavior specific to the object.
-   * This method should be overridden by subclasses as needed.
-   */
-  public void start() {}
+  public abstract void init();
 
   /**
    * Called at the moment right after the object is unregistered from a scene.
+   * This is called before the object's components are detached.
    * This method should be overridden by subclasses as needed.
    */
   public void onDestroy() {}
