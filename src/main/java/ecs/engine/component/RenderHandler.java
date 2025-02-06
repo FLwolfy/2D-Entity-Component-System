@@ -64,7 +64,7 @@ public class RenderHandler extends GameComponent {
   @Override
   public void transformUpdate() {
     synchronized (this) {
-      if (image == null || graphicsCanvas == null) {
+      if (image == null) {
         return;
       }
 
@@ -79,7 +79,7 @@ public class RenderHandler extends GameComponent {
   }
   
   @Override
-  public void update() {
+  public void renderUpdate() {
     synchronized (this) {
       if (image == null || graphicsCanvas == null) {
         return;
@@ -88,14 +88,6 @@ public class RenderHandler extends GameComponent {
       // Render the image
       graphicsCanvas.getChildren().add(image);
     }
-  }
-
-  @Override
-  /**
-   * The fixed update method for the render component will not be called.
-   */
-  public void fixedUpdate() {
-    // Do nothing
   }
 
   private void handleRenderShape() {

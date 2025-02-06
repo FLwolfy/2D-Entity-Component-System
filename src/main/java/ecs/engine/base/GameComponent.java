@@ -78,8 +78,15 @@ public abstract class GameComponent {
   public void fixedUpdate() {}
 
   /**
-   * Called every frame to update the impact of the transform changes on other components.
-   * This method is called before all the update() methods of all the components.
+   * Called to update the component render behavior of the object with a render time step.
+   * This is called from the main thread and will be delayed if the main thread is busy.
+   * This method should be overridden by subclasses as needed.
+   */
+  public void renderUpdate() {}
+
+  /**
+   * Called to update the component behavior of the object with a transform update.
+   * This is called before the update() and fixedUpdate() methods to handle the transformation.
    * This method should be overridden by subclasses as needed.
    */
   public void transformUpdate() {}

@@ -67,9 +67,6 @@ public abstract class Collider<T extends Shape> extends GameComponent {
       return;
     }
 
-    // Update the collider attributes
-    handleColliderShape();
-
     // Update the collider physics
     handleColliderPhysics();
 

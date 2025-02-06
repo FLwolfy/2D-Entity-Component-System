@@ -206,12 +206,6 @@ public abstract class GameScene {
 
     // 3. Update transform
     for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
-      // Skip the render handler and physics handler
-      if (order == ComponentUpdateTag.RENDER) {
-        continue;
-      }
-
-      // Update the transform of the other components
       for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.transformUpdate();
       }
@@ -219,12 +213,6 @@ public abstract class GameScene {
 
     // 4. Update the components based on the order
     for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
-      // Skip the render handler
-      if (order == ComponentUpdateTag.RENDER) {
-        continue;
-      }
-
-      // Update the other components
       for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.update();
       }
@@ -233,7 +221,7 @@ public abstract class GameScene {
     // 5. Update the scene interactions
     currentScene.interact();
 
-    // 6. Update the late update
+    // 6. Update the late update of the behaviors
     for (GameComponent behavior : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.BEHAVIOR)) {
       if (((EntityBehavior) behavior).isEnable()) {
         ((EntityBehavior) behavior).lateUpdate();
@@ -260,9 +248,15 @@ public abstract class GameScene {
     // Update the fixed delta time
     fixedDeltaTime = fixedElapsedTime;
 
+    // Update the transform
+    for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
+      for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
+        component.transformUpdate();
+      }
+    }
+
     // Update the components based on the order
     for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
-      // Update the other components
       for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.fixedUpdate();
       }
@@ -281,14 +275,11 @@ public abstract class GameScene {
     Pane renderCanvas = getRenderCanvas();
     renderCanvas.getChildren().clear();
 
-    // Update the transform of the render components
-    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.RENDER)) {
-      component.transformUpdate();
-    }
-
-    // Render the rendering gameComponents
-    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.RENDER)) {
-      component.update();
+    // Update the components based on the order
+    for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
+      for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
+        component.renderUpdate();
+      }
     }
   }
 
