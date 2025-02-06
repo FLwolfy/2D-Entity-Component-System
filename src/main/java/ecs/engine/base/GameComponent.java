@@ -72,6 +72,12 @@ public abstract class GameComponent {
   public void update() {}
 
   /**
+   * Called to update the component behavior of the object with a fixed time step.
+   * This method should be overridden by subclasses as needed.
+   */
+  public void fixedUpdate() {}
+
+  /**
    * Called every frame to update the impact of the transform changes on other components.
    * This method is called before all the update() methods of all the components.
    * This method should be overridden by subclasses as needed.

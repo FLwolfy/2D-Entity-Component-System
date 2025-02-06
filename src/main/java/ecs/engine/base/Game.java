@@ -1,12 +1,15 @@
 package ecs.engine.base;
 
-import javafx.application.Platform;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * The main class for the game.
@@ -18,16 +21,18 @@ public class Game {
   public static final int HEIGHT = 600;
   public static final String TITLE = "ECS Example";
   public static final Paint DEFAULT_BACKGROUND = Paint.valueOf("#202020");
-  public static final double MAX_FRAME_RATE = 60.0;
+  public static final double MAX_FRAME_RATE = 144.0;
+  public static final double FIXED_TIME_STEP = 0.02;
 
   ///////////////////////////////////////////
 
   // Stage for the game
-  private Stage stage;
+  private final Stage stage;
 
   // Time tracking for the game loop
   private static final double TIME_PER_FRAME = 1.0 / MAX_FRAME_RATE;
-  private long lastTime = System.nanoTime();
+  private long lastLogicUpdateTime = System.nanoTime();
+  private long lastFixedUpdateTime = System.nanoTime();
 
   /**
    * Create a new game
@@ -38,6 +43,7 @@ public class Game {
 
     // Create the scene
     Scene scene = new Scene(new StackPane(), WIDTH, HEIGHT);
+    scene.setFill(DEFAULT_BACKGROUND);
     setupCanvases(scene);
     GameScene.setInnerScene(scene);
 
@@ -48,41 +54,52 @@ public class Game {
   }
 
   private void setupCanvases(Scene scene) {
-    // Create the canvas
-    Canvas backgroundCanvas = new Canvas(WIDTH, HEIGHT);
-    Canvas gameCanvas = new Canvas(WIDTH, HEIGHT);
-
-    // Set the background
-    GraphicsContext bggc = backgroundCanvas.getGraphicsContext2D();
-    bggc.setFill(DEFAULT_BACKGROUND);
-    bggc.fillRect(0, 0, WIDTH, HEIGHT);
+    // Create the canvas groups
+    Pane uiCanvas = new Pane();
+    Pane backgroundCanvas = new Pane();
+    Pane gameCanvas = new Pane();
 
     // Add the canvases to the scene
     StackPane root = (StackPane) scene.getRoot();
-    root.getChildren().addAll(backgroundCanvas, gameCanvas);
+    root.getChildren().addAll(backgroundCanvas, gameCanvas, uiCanvas);
   }
 
   private void startGameLoop() {
+    // Start the Logic loop
     Thread gameLoopThread = new Thread(() -> {
       while (true) {
         long beginTime = System.nanoTime();
-        if (beginTime - lastTime < 1_000_000_000 / MAX_FRAME_RATE) {
-          continue;
+        double elapsedTime = (beginTime - lastLogicUpdateTime) / 1_000_000_000.0;
+        double fixedElapsedTime = (beginTime - lastFixedUpdateTime) / 1_000_000_000.0;
+
+        if (beginTime - lastLogicUpdateTime >= 1_000_000_000 * TIME_PER_FRAME) {
+          // Step the game logic
+          GameScene.step(elapsedTime);
+
+          // Calculate the last time
+          lastLogicUpdateTime = beginTime;
         }
 
-        // Step the game logic
-        double deltaTime = (beginTime - lastTime) / 1_000_000_000.0;
-        GameScene.step(deltaTime);
+        if (beginTime - lastFixedUpdateTime >= 1_000_000_000 * FIXED_TIME_STEP) {
+          // Step the fixed game logic
+          GameScene.fixedStep(FIXED_TIME_STEP);
 
-        // Render the game scene by calling Platform.runLater() to execute in the main thread
-        Platform.runLater(GameScene::render);
-
-        // Calculate the last time
-        lastTime = beginTime;
+          // Calculate the last time
+          lastFixedUpdateTime = beginTime;
+        }
       }
     });
     gameLoopThread.setDaemon(true);
     gameLoopThread.start();
+
+    // Start the render loop
+    Timeline renderLoop = new Timeline();
+    renderLoop.setCycleCount(Timeline.INDEFINITE);
+    renderLoop.getKeyFrames().add(new KeyFrame(
+        Duration.seconds(TIME_PER_FRAME),
+        event -> GameScene.renderStep()
+    ));
+    renderLoop.play();
   }
 
   /* API HERE */

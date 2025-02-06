@@ -71,7 +71,7 @@ public class PhysicsHandler extends GameComponent {
   }
 
   @Override
-  public void update() {
+  public void fixedUpdate() {
     // Apply gravitation
     applyGravity();
 
@@ -89,14 +89,14 @@ public class PhysicsHandler extends GameComponent {
 
   private void applyGravity() {
     if (applyGravity) {
-      velocity = velocity.add(new Point2D(0, gravitation * mass * GameScene.getDeltaTime()));
+      velocity = velocity.add(new Point2D(0, gravitation * mass * GameScene.getFixedDeltaTime()));
     }
   }
 
   private void applyAirResistance() {
     if (applyAirResistance) {
       if (oldAirResistancePercentage != airResistancePercentage) {
-        realAirResistancePercentage = 1 - Math.pow(1 - airResistancePercentage, GameScene.getDeltaTime());
+        realAirResistancePercentage = 1 - Math.pow(1 - airResistancePercentage, GameScene.getFixedDeltaTime());
         oldAirResistancePercentage = airResistancePercentage;
       }
       velocity = velocity.multiply(1 - realAirResistancePercentage);
@@ -107,7 +107,7 @@ public class PhysicsHandler extends GameComponent {
     if (acceleration.magnitude() > MAX_ACCELERATION) {
       acceleration = acceleration.normalize().multiply(MAX_ACCELERATION);
     }
-    velocity = velocity.add(acceleration.multiply(GameScene.getDeltaTime()));
+    velocity = velocity.add(acceleration.multiply(GameScene.getFixedDeltaTime()));
     if (velocity.magnitude() > MAX_SPEED) {
       velocity = velocity.normalize().multiply(MAX_SPEED);
     }
@@ -115,16 +115,16 @@ public class PhysicsHandler extends GameComponent {
   }
 
   private void applyAngularAcceleration() {
-    angularVelocity += angularAcceleration * GameScene.getDeltaTime();
+    angularVelocity += angularAcceleration * GameScene.getFixedDeltaTime();
     angularVelocity = Math.min(Math.max(angularVelocity, -MAX_ANGULAR_SPEED), MAX_ANGULAR_SPEED);
   }
 
   private void applyVelocity() {
-    transform.position = transform.position.add(velocity.multiply(GameScene.getDeltaTime()));
+    transform.position = transform.position.add(velocity.multiply(GameScene.getFixedDeltaTime()));
   }
 
   private void applyAngularVelocity() {
-    transform.rotation += angularVelocity * GameScene.getDeltaTime();
+    transform.rotation += angularVelocity * GameScene.getFixedDeltaTime();
   }
 
   /* API BELOW */

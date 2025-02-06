@@ -61,12 +61,20 @@ public abstract class EntityBehavior extends GameComponent {
   /**
    * Called in the first frame after the attaching.
    */
+  @Override
   public abstract void start();
 
   /**
    * Called every frame.
    */
+  @Override
   public abstract void update();
+
+  /**
+   * Called every frame with a fixed time step.
+   */
+  @Override
+  public void fixedUpdate() {};
 
   /**
    * Called every frame lastly.

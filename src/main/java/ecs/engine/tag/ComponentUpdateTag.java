@@ -9,6 +9,6 @@ public enum ComponentUpdateTag {
   TRANSFORM,
   PHYSICS,
   COLLISION,
-  RENDER,
-  BEHAVIOR
+  BEHAVIOR,
+  RENDER
 }

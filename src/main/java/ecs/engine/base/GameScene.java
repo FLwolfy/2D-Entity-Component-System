@@ -12,10 +12,9 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
 /**
@@ -46,7 +45,8 @@ public abstract class GameScene {
   private static GameScene currentScene;
 
   // readonly variables
-  private static Double deltaTime;
+  private static double deltaTime;
+  private static double fixedDeltaTime;
   private boolean isActive;
 
   // instance variables
@@ -134,6 +134,13 @@ public abstract class GameScene {
   }
 
   /**
+   * Get the fixed delta time between the current frame and the previous frame.
+   */
+  public static double getFixedDeltaTime() {
+    return fixedDeltaTime;
+  }
+
+  /**
    * Get the scene of the specified class type.
    */
   public static <T extends GameScene> T getGameScene(Class<T> sceneClass) {
@@ -168,11 +175,11 @@ public abstract class GameScene {
   }
 
   /**
-   * Get the render graphics context of the game.
-   * The render GC is automatically cleared in every frame.
+   * Get the render Canvas Group of the game.
+   * The render canvas is automatically cleared in every frame.
    */
-  public static GraphicsContext getRenderGC() {
-    return ((Canvas)((StackPane) FXscene.getRoot()).getChildren().get(1)).getGraphicsContext2D();
+  public static Pane getRenderCanvas() {
+    return (Pane) ((StackPane) FXscene.getRoot()).getChildren().get(1);
   }
 
   /**
@@ -199,6 +206,12 @@ public abstract class GameScene {
 
     // 3. Update transform
     for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
+      // Skip the render handler and physics handler
+      if (order == ComponentUpdateTag.RENDER) {
+        continue;
+      }
+
+      // Update the transform of the other components
       for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.transformUpdate();
       }
@@ -206,35 +219,28 @@ public abstract class GameScene {
 
     // 4. Update the components based on the order
     for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
-      // Skip the render handler and the behavior
-      if (order == ComponentUpdateTag.RENDER || order == ComponentUpdateTag.BEHAVIOR) {
+      // Skip the render handler
+      if (order == ComponentUpdateTag.RENDER) {
         continue;
       }
 
-      // Update the components
+      // Update the other components
       for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
         component.update();
       }
     }
 
-    // 5. Update the game behavior
-    for (GameComponent behavior : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.BEHAVIOR)) {
-      if (((EntityBehavior) behavior).isEnable()) {
-        behavior.update();
-      }
-    }
-
-    // 6. Update the late update
+    // 5. Update the scene interactions
     currentScene.interact();
 
-    // 7. Update the late update
+    // 6. Update the late update
     for (GameComponent behavior : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.BEHAVIOR)) {
       if (((EntityBehavior) behavior).isEnable()) {
         ((EntityBehavior) behavior).lateUpdate();
       }
     }
 
-    // 8. Update the scene actions
+    // 7. Update the scene actions
     size = sceneActions.size();
     for (int i = 0; i < size; i++) {
       sceneActions.get(i).handle(new ActionEvent());
@@ -243,21 +249,45 @@ public abstract class GameScene {
   }
 
   /**
-   * Render the current scene.
-   * This method will be called in the main thread to render the scene.
+   * Update the game components with fixed time step.
+   * This method will be called in the main thread to update the game components with fixed time step.
    */
-  public static void render() {
+  public static void fixedStep(double fixedElapsedTime) {
     if (currentScene == null) {
       throw new RuntimeException("No scene is currently active.");
     }
 
-    // Clear the canvas
-    GraphicsContext gc = ((Canvas)((StackPane) FXscene.getRoot()).getChildren().get(1)).getGraphicsContext2D();
-    gc.clearRect(0, 0, FXscene.getWidth(), FXscene.getHeight());
+    // Update the fixed delta time
+    fixedDeltaTime = fixedElapsedTime;
 
-    // Render the gameComponents
-    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(
-        ComponentUpdateTag.RENDER)) {
+    // Update the components based on the order
+    for (ComponentUpdateTag order : ComponentUpdateTag.values()) {
+      // Update the other components
+      for (GameComponent component : GameComponent.allComponents.get(currentScene).get(order)) {
+        component.fixedUpdate();
+      }
+    }
+  }
+
+  /**
+   * Render the current scene.
+   * This method will be called in the main thread to render the scene.
+   */
+  public static void renderStep() {
+    if (currentScene == null) {
+      throw new RuntimeException("No scene is currently active.");
+    }
+    // Clear the render canvas (keep the root)
+    Pane renderCanvas = getRenderCanvas();
+    renderCanvas.getChildren().clear();
+
+    // Update the transform of the render components
+    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.RENDER)) {
+      component.transformUpdate();
+    }
+
+    // Render the rendering gameComponents
+    for (GameComponent component : GameComponent.allComponents.get(currentScene).get(ComponentUpdateTag.RENDER)) {
       component.update();
     }
   }

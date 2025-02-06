@@ -14,7 +14,7 @@ public class ExampleScene extends GameScene {
   @Override
   public void setUp() {
     // Create the bouncers
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 5; i++) {
       // Instantiate the bouncer
       Bouncer bouncer = instantiateObject(Bouncer.class);
 

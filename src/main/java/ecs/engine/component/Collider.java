@@ -62,12 +62,18 @@ public abstract class Collider<T extends Shape> extends GameComponent {
   }
 
   @Override
-  public final void update() {
+  public final void fixedUpdate() {
     if (shape == null) {
       return;
     }
 
+    // Update the collider attributes
+    handleColliderShape();
+
+    // Update the collider physics
     handleColliderPhysics();
+
+    // Handle the collision events
     handleCollisionEvents();
   }
 
@@ -251,6 +257,8 @@ public abstract class Collider<T extends Shape> extends GameComponent {
     double otherMass = otherPhysicsHandler.mass;
     return parallel.multiply((mass - otherMass) / (mass + otherMass)).add(perpendicular).add(otherVelocity);
   }
+
+  /* OVERRIDABLE METHODS BELOW */
 
   /**
    * Update the attributes of the collider.

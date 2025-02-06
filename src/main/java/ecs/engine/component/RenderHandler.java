@@ -6,10 +6,12 @@ import ecs.engine.tag.ComponentUpdateTag;
 import java.util.ArrayList;
 import java.util.Comparator;
 import javafx.geometry.Bounds;
+import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.SnapshotParameters;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
@@ -35,7 +37,7 @@ public class RenderHandler extends GameComponent {
 
   // instance variables
   private Node image;
-  private GraphicsContext graphicsContext;
+  private Pane graphicsCanvas;
   private int oldRenderOrder;
 
   @Override
@@ -56,39 +58,44 @@ public class RenderHandler extends GameComponent {
 
   @Override
   public void start() {
-    graphicsContext = GameScene.getRenderGC();
+    graphicsCanvas = GameScene.getRenderCanvas();
   }
 
   @Override
   public void transformUpdate() {
-    if (image == null) {
-      return;
-    }
+    synchronized (this) {
+      if (image == null || graphicsCanvas == null) {
+        return;
+      }
 
-    // Update the render order
-    if (oldRenderOrder != renderOrder) {
-      updateRenderOrder();
-      oldRenderOrder = renderOrder;
-    }
+      // Update the render order
+      if (oldRenderOrder != renderOrder) {
+        updateRenderOrder();
+        oldRenderOrder = renderOrder;
+      }
 
-    handleRenderShape();
+      handleRenderShape();
+    }
   }
   
   @Override
   public void update() {
     synchronized (this) {
-      if (image == null) {
+      if (image == null || graphicsCanvas == null) {
         return;
       }
 
-      // Capture the transformed image
-      SnapshotParameters params = new SnapshotParameters();
-      params.setFill(Color.TRANSPARENT);
-      WritableImage snapshot = image.snapshot(params, null);
-
-      // Draw the image at the correct transformed position
-      graphicsContext.drawImage(snapshot, transform.position.getX() - width / 2, transform.position.getY() - height / 2);
+      // Render the image
+      graphicsCanvas.getChildren().add(image);
     }
+  }
+
+  @Override
+  /**
+   * The fixed update method for the render component will not be called.
+   */
+  public void fixedUpdate() {
+    // Do nothing
   }
 
   private void handleRenderShape() {
@@ -148,7 +155,7 @@ public class RenderHandler extends GameComponent {
   }
 
   /**
-   * Get the width of the rendered image
+   * Get the width of the AABB of the rendered image
    * @return The width of the rendered image
    */
   public double getWidth() {
@@ -156,7 +163,7 @@ public class RenderHandler extends GameComponent {
   }
 
   /**
-   * Get the height of the rendered image
+   * Get the height of the AABB of the rendered image
    * @return The height of the rendered image
    */
   public double getHeight() {
@@ -164,7 +171,7 @@ public class RenderHandler extends GameComponent {
   }
 
   /**
-   * Get the raw width of the rendered image
+   * Get the raw width of the AABB of the rendered image
    * @return The raw width of the rendered image
    */
   public double getRawWidth() {
@@ -172,7 +179,7 @@ public class RenderHandler extends GameComponent {
   }
 
   /**
-   * Get the raw height of the rendered image
+   * Get the raw height of the AABB of the rendered image
    * @return The raw height of the rendered image
    */
   public double getRawHeight() {

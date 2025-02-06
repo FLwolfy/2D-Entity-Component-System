@@ -55,7 +55,7 @@ public class BouncerBehavior extends EntityBehavior {
   private void checkGround() {
     // Reset the position if the circle is out of bounds
     if (transform.position.getY() > sceneHeight + collider.getRadiusY()) {
-      transform.position = new Point2D(sceneWidth / 2, -collider.getRadiusY());
+      transform.position = new Point2D(sceneWidth / 2, - collider.getRadiusY());
       physicsHandler.velocity = new Point2D(Math.random() * 1000 - 500, Math.random() * 1000 - 500);
     }
   }
